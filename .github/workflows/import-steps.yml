@@ -1,0 +1,68 @@
+name: Import steps from Google Docs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: import-steps
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Import Google Docs subtabs
+        run: npm run import:steps
+        env:
+          GOOGLE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_OAUTH_CLIENT_JSON }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+
+      - name: Validate imported content
+        run: |
+          npm test
+          npm run build
+
+      - name: Check for normalized step changes
+        id: changes
+        shell: bash
+        run: |
+          git status --porcelain -- steps | tee "$RUNNER_TEMP/step-changes.txt"
+          if [[ -s "$RUNNER_TEMP/step-changes.txt" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "The imported steps are already up to date."
+          fi
+
+      - name: Commit and push imported steps
+        if: steps.changes.outputs.changed == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- steps
+          git commit -m "content: import steps from Google Docs"
+          git push origin HEAD:main
+
+      - name: Deploy the new main commit
+        if: steps.changes.outputs.changed == 'true'
+        run: gh workflow run deploy.yml --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,8 +1,10 @@
-name: Import steps and deploy review site
+name: Deploy review site
 
 on:
   push:
     branches: [main]
+  # The manual importer uses this after committing with GITHUB_TOKEN, because
+  # that token's push does not trigger other push workflows.
   workflow_dispatch:
 
 permissions:
@@ -15,28 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  import:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Import Google Docs subtabs
-        run: npm run import:steps
-        env:
-          GOOGLE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_OAUTH_CLIENT_JSON }}
-          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: normalized-steps
-          path: steps
-          include-hidden-files: true
-
   build:
-    needs: import
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,10 +27,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - uses: actions/download-artifact@v4
-        with:
-          name: normalized-steps
-          path: steps
       - name: Configure GitHub Pages base path
         shell: bash
         run: |
