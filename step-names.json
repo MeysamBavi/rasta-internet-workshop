@@ -1,0 +1,15 @@
+{
+  "documentId": "1qiwBzUA42b_8EPWjaniVR4B3dUqLhT7xj-q7mzCXK2I",
+  "names": {
+    "t.l6o0xu6b24h4": "encoding-1-mediums",
+    "t.29jlaul4lkzk": "encoding-2-clock",
+    "t.5eqblsabtwby": "encoding-3-manchester",
+    "t.mhkywljx3d6h": "switching-1-circuit-1",
+    "t.gk9fpjqcb7ps": "switching-2-circuit-2",
+    "t.jlk9kvxe4u6m": "switching-3-packet-1",
+    "t.zgf46iunwd2": "switching-4-packet-2",
+    "t.trjq3w5eho7w": "routing-1-table",
+    "t.tgca6vu2wksm": "routing-2-static",
+    "t.18ikjxcjf30w": "routing-3-dynamic"
+  }
+}
