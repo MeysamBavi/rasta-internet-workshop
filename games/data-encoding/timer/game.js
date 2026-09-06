@@ -461,23 +461,35 @@ function resetPhaseMarker() {
 }
 
 function resetPairedClock() {
-    pairedTxHand.style.transform = 'rotate(0deg)';
-    pairedRxHand.style.transform = 'rotate(0deg)';
     pairedTxHand.classList.remove('glow-tx');
     pairedRxHand.classList.remove('glow-rx', 'glow-rx-error');
     pairedTxPulse.classList.remove('active');
     pairedRxPulse.classList.remove('active', 'error');
 }
 
+function currentTxDurFrames() {
+    if (hasStarted) return txBitDurationFrames();
+    const v = parseFloat(document.getElementById('txRate').value);
+    return (Number.isFinite(v) && v > 0 ? v : 1) * FPS;
+}
+
+function currentRxDurFrames() {
+    if (hasStarted) return rxBitDurationFrames();
+    const v = parseFloat(document.getElementById('rxRate').value);
+    return (Number.isFinite(v) && v > 0 ? v : 1) * FPS;
+}
+
 function updateVisualClocks() {
-    if (!hasStarted) return;
-    const txDur = txBitDurationFrames();
-    const rxDur = rxBitDurationFrames();
+    const txDur = currentTxDurFrames();
+    const rxDur = currentRxDurFrames();
     const txAngle = (globalTime / txDur) * 360 % 360;
     pairedTxHand.style.transform = `rotate(${txAngle}deg)`;
 
-    // Both hands start spinning at t=0. RX hand's phase is offset so it still
+    // Both hands are on-screen even at rest. RX hand's phase is offset so it
     // hits the tick exactly at sample moments (delay + 0.5*rxDur + k*rxDur).
+    // At rest (globalTime = 0) the RX hand sits in the lower half of the face,
+    // which is where it would naturally be one frame into playback — so
+    // clicking Send never causes a visible jump.
     const rxPhase = (globalTime - PROPAGATION_DELAY_FRAMES) / rxDur - 0.5;
     const rxAngle = (rxPhase * 360 % 360 + 360) % 360;
     pairedRxHand.style.transform = `rotate(${rxAngle}deg)`;
