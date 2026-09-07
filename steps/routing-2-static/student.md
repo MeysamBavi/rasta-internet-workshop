@@ -44,7 +44,7 @@
 3. بی‌دلیل مسیر طولانی‌تری رو طی نکنه.
 4. در نهایت به شبکهٔ مقصد برسه.
 
-<iframe class="mini-game" src="../../games/routing/index.html" title="مینی‌گیم پر کردن جداول مسیریابی" loading="lazy" allowfullscreen></iframe>
+<iframe class="mini-game" src="../../games/routing/routing/index.html" title="مینی‌گیم پر کردن جداول مسیریابی" loading="lazy" allowfullscreen></iframe>
 
 ### آماده‌این؟
 

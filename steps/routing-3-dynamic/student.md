@@ -18,7 +18,7 @@
 
 &#x20;الگوریتمتون رو مرحله‌به‌مرحله اجرا کنید تا ببینید شبکه چطور مسیر جدید رو یاد می‌گیره.
 
-<iframe class="mini-game" src="../../games/routing/index.html" title="مینی‌گیم مسیریابی پویا" loading="lazy" allowfullscreen></iframe>
+<iframe class="mini-game" src="../../games/routing/bellman-ford/index.html" title="مینی‌گیم مسیریابی پویا" loading="lazy" allowfullscreen></iframe>
 
 ## آماده‌این؟
 
