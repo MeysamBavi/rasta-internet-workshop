@@ -76,12 +76,19 @@ concrete need.
 Use a clear Persian-first RTL interface with a dominant play or simulation area,
 concise text, minimal typing, and no unnecessary controls. Do not remove meaningful
 planning tools, variables, or status displays solely to make a complex game sparse.
-Use square UI edges. Use four or five distinct, lively chromatic colors from the
-event-derived palette in `docs/mini-games.md`, in addition to neutral canvas and ink
-colors. Assign each hue a stable functional meaning—such as an actor, state, path, or
-category—and do not spend colors on decoration. Use strong color coding where it
-makes the system easier to scan, and pair color with shape, position, pattern, line
-style, motion, a symbol, or a short Persian label.
+Use four or five distinct, lively chromatic colors from the event-derived palette in
+`docs/mini-games.md`, in addition to neutral canvas and ink colors. Assign each hue a
+stable functional meaning—such as an actor, state, path, or category—and do not spend
+colors on decoration. Use strong color coding where it makes the system easier to
+scan, and pair color with shape, position, pattern, line style, motion, a symbol, or a
+short Persian label.
+
+Use clearly contrasting background colors for distinct sections such as the play
+area, controls, queues, endpoints, or results. Adjacent regions must differ visibly in
+hue or lightness rather than relying only on shadows or subtle borders. Prefer
+readable tints of the functional palette for large surfaces, retain sufficient
+foreground contrast, and verify the separation at iframe size and on a low-contrast
+display or projector.
 
 Do not render a title, nameplate, or static explanatory description at the top of a
 game page. Make the interaction self-explanatory through its initial state,
@@ -124,5 +131,6 @@ repository tests and build. Check that no game page begins with a visible title 
 static description, that Persian text renders in Vazirmatn without network access,
 that four or five functional colors remain distinct and consistent, and search the
 rendered UI and source strings for accidental English student-facing copy, excluding
-permitted specialist terms and conventional symbols. Report the paths created or
-changed and the observed verification results.
+permitted specialist terms and conventional symbols. Confirm that adjacent section
+backgrounds remain clearly distinguishable and their contents readable. Report the
+paths created or changed and the observed verification results.
