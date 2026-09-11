@@ -4,7 +4,7 @@ description: >-
   Create, split, restyle, or refactor student-facing simulations, games, and puzzles
   for the Rasta Internet Workshop. Use for new interactive learning games and for
   converting large single-file or existing multi-file games to the repository's Vite,
-  multi-page, RTL, visual, and discovery-learning conventions.
+  multi-page, Persian-language, RTL, visual, and discovery-learning conventions.
 ---
 
 # Create Workshop Mini-games
@@ -80,6 +80,17 @@ Use square UI edges. Select one of the desaturated two-to-four-color sets in
 `docs/mini-games.md`; do not combine palettes. Use color purposefully and pair it with
 another visual cue.
 
+Write every student-visible string in Persian, including controls, feedback, scores,
+errors, tooltips, document titles, alternative text, canvas fallbacks, and
+accessibility names. Use English only for specific networking terminology that has no
+common Persian equivalent, and match the terminology in the relevant step. In
+particular, use `بسته`, `پیام`, and `مسیریابی` instead of `packet`, `message`, and
+`routing`; a specialist term such as `switch` may remain when appropriate. English is
+fine in source code and developer-only text. Keep conventional Latin scientific and
+technical symbols such as `V`, `s`, `ms`, `Hz`, `bps`, and formula variables; these
+are not English copy and must not be translated. Add a Persian label when useful and
+isolate Latin UI fragments as LTR.
+
 Animate cause and effect smoothly without delaying interaction. Respect
 `prefers-reduced-motion`. Make the game responsive in the workshop iframe, fullscreen,
 and a standalone page, with touch, mouse, and reasonable keyboard support.
@@ -93,5 +104,6 @@ hub belongs only on the workshop home page; steps must target a version directly
 Build the game and confirm `dist/index.html` plus every nested
 `dist/<version>/index.html`. Verify relative imports and assets from the final nested
 path, check that version pages expose no cross-game navigation, then run the
-repository tests and build. Report the paths created or changed and the observed
-verification results.
+repository tests and build. Search the rendered UI and source strings for accidental
+English student-facing copy, excluding permitted specialist terms and conventional
+symbols. Report the paths created or changed and the observed verification results.
