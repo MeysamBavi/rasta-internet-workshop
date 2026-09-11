@@ -79,9 +79,17 @@ planning tools, variables, or status displays solely to make a complex game spar
 Use four or five distinct, lively chromatic colors from the event-derived palette in
 `docs/mini-games.md`, in addition to neutral canvas and ink colors. Assign each hue a
 stable functional meaning—such as an actor, state, path, or category—and do not spend
-colors on decoration. Use strong color coding where it makes the system easier to
-scan, and pair color with shape, position, pattern, line style, motion, a symbol, or a
-short Persian label.
+colors on decoration. Use clear, restrained color coding where it makes the system
+easier to scan, and pair color with shape, position, pattern, line style, motion, a
+symbol, or a short Persian label.
+
+For selection, focus, hover, and active-state highlighting, default to a soft
+translucent halo or tint plus one modest outline. Keep paths and borders light enough
+that they do not overpower labels or objects. Do not stack thick outlines, oversized
+frames, or rigid dashed borders merely to make a state noticeable. Give rectangular
+interactive objects and section containers a small corner radius by default; avoid
+pill shapes unless the represented object is naturally pill-shaped. Stronger emphasis
+is appropriate only when the state has exceptional semantic urgency.
 
 Use clearly contrasting background colors for distinct sections such as the play
 area, controls, queues, endpoints, or results. Adjacent regions must differ visibly in
@@ -132,5 +140,7 @@ static description, that Persian text renders in Vazirmatn without network acces
 that four or five functional colors remain distinct and consistent, and search the
 rendered UI and source strings for accidental English student-facing copy, excluding
 permitted specialist terms and conventional symbols. Confirm that adjacent section
-backgrounds remain clearly distinguishable and their contents readable. Report the
-paths created or changed and the observed verification results.
+backgrounds remain clearly distinguishable and their contents readable. Check that
+highlight states use soft halos or tints, a single modest outline, and slightly rounded
+corners without sacrificing visibility. Report the paths created or changed and the
+observed verification results.
