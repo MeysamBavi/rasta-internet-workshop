@@ -76,9 +76,20 @@ concrete need.
 Use a clear Persian-first RTL interface with a dominant play or simulation area,
 concise text, minimal typing, and no unnecessary controls. Do not remove meaningful
 planning tools, variables, or status displays solely to make a complex game sparse.
-Use square UI edges. Select one of the desaturated two-to-four-color sets in
-`docs/mini-games.md`; do not combine palettes. Use color purposefully and pair it with
-another visual cue.
+Use square UI edges. Use four or five distinct, lively chromatic colors from the
+event-derived palette in `docs/mini-games.md`, in addition to neutral canvas and ink
+colors. Assign each hue a stable functional meaning—such as an actor, state, path, or
+category—and do not spend colors on decoration. Use strong color coding where it
+makes the system easier to scan, and pair color with shape, position, pattern, line
+style, motion, a symbol, or a short Persian label.
+
+Do not render a title, nameplate, or static explanatory description at the top of a
+game page. Make the interaction self-explanatory through its initial state,
+affordances, labels, visible constraints, motion, and feedback. Use only short
+contextual labels, changing status text, or just-in-time hints when needed. Keep an
+HTML `<title>` for document metadata and the workshop's game index; it must not become
+a visible in-game heading. A multi-version root hub may identify its collection
+because it is not itself a game screen.
 
 Write every student-visible string in Persian, including controls, feedback, scores,
 errors, tooltips, document titles, alternative text, canvas fallbacks, and
@@ -90,6 +101,11 @@ fine in source code and developer-only text. Keep conventional Latin scientific 
 technical symbols such as `V`, `s`, `ms`, `Hz`, `bps`, and formula variables; these
 are not English copy and must not be translated. Add a Persian label when useful and
 isolate Latin UI fragments as LTR.
+
+Use Vazirmatn for every Persian UI string, including DOM, SVG, and Canvas text. Bundle
+the font or import a local package through Vite; do not fetch it from a runtime CDN.
+Monospace may still be used for code, bit strings, and similar technical data. Ensure
+the font has loaded before measuring or drawing Canvas or p5.js text.
 
 Animate cause and effect smoothly without delaying interaction. Respect
 `prefers-reduced-motion`. Make the game responsive in the workshop iframe, fullscreen,
@@ -104,6 +120,9 @@ hub belongs only on the workshop home page; steps must target a version directly
 Build the game and confirm `dist/index.html` plus every nested
 `dist/<version>/index.html`. Verify relative imports and assets from the final nested
 path, check that version pages expose no cross-game navigation, then run the
-repository tests and build. Search the rendered UI and source strings for accidental
-English student-facing copy, excluding permitted specialist terms and conventional
-symbols. Report the paths created or changed and the observed verification results.
+repository tests and build. Check that no game page begins with a visible title or
+static description, that Persian text renders in Vazirmatn without network access,
+that four or five functional colors remain distinct and consistent, and search the
+rendered UI and source strings for accidental English student-facing copy, excluding
+permitted specialist terms and conventional symbols. Report the paths created or
+changed and the observed verification results.
