@@ -1,4 +1,4 @@
-[submodule "games/routing"]
-	path = games/routing
+[submodule "games/routing-old"]
+	path = games/routing-old
 	url = https://github.com/KianHsn/RastaNetwork.git
 	branch = master
