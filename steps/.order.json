@@ -1,42 +1,42 @@
 [
   {
-    "tabId": "t.l6o0xu6b24h4",
-    "name": "encoding-1-mediums",
-    "title": "صفر و یک چجوری از اینجا بره اونجا؟"
+    "tabId": "t.4kqqq5o6f2l7",
+    "name": "encoding-1-medium-and-signal",
+    "title": "صفر…یک…حرکت"
   },
   {
-    "tabId": "t.29jlaul4lkzk",
-    "name": "encoding-2-clock",
+    "tabId": "t.6dt8xndqwygo",
+    "name": "encoding-2-wire",
+    "title": "برق برقووو (حالا فقط یه سیم داریم)"
+  },
+  {
+    "tabId": "t.jizdtxr6nyez",
+    "name": "encoding-3-clock",
     "title": "هر بیت تا کی؟"
   },
   {
-    "tabId": "t.5eqblsabtwby",
-    "name": "encoding-3-manchester",
-    "title": "کلاکی که خودش رو قایم کرده؟"
-  },
-  {
-    "tabId": "t.rw3x54jv6qhl",
+    "tabId": "t.56i9sllnc4h6",
     "name": "encoding-4-bandwidth",
-    "title": "سرعتِ بی‌نهایت؟ ترمز سیم‌ها کجاست؟"
+    "title": "عنوان"
   },
   {
     "tabId": "t.mhkywljx3d6h",
-    "name": "switching-1-circuit-1",
+    "name": "switching-1-switch",
     "title": "…وانگهی شبکه شود!"
   },
   {
     "tabId": "t.gk9fpjqcb7ps",
-    "name": "switching-2-circuit-2",
+    "name": "switching-2-circuit",
     "title": "سوییچ‌ها و مسیرها"
   },
   {
     "tabId": "t.jlk9kvxe4u6m",
-    "name": "switching-3-packet-1",
+    "name": "switching-3-message",
     "title": "رزرو بی‌جا مانع کسب است!"
   },
   {
     "tabId": "t.zgf46iunwd2",
-    "name": "switching-4-packet-2",
+    "name": "switching-4-packet",
     "title": "لقمه بزرگ در گلوی شبکه!"
   },
   {
@@ -58,10 +58,5 @@
     "tabId": "t.tgca6vu2wksm",
     "name": "routing-2-static",
     "title": "شبکه رو قبل از ارسال آماده کنین"
-  },
-  {
-    "tabId": "t.18ikjxcjf30w",
-    "name": "routing-3-dynamic",
-    "title": "روترهای هوشمند"
   }
 ]

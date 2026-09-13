@@ -1,18 +1,17 @@
 {
   "documentId": "1qiwBzUA42b_8EPWjaniVR4B3dUqLhT7xj-q7mzCXK2I",
   "names": {
-    "t.l6o0xu6b24h4": "encoding-1-mediums",
-    "t.29jlaul4lkzk": "encoding-2-clock",
-    "t.5eqblsabtwby": "encoding-3-manchester",
-    "t.rw3x54jv6qhl": "encoding-4-bandwidth",
-    "t.mhkywljx3d6h": "switching-1-circuit-1",
-    "t.gk9fpjqcb7ps": "switching-2-circuit-2",
-    "t.jlk9kvxe4u6m": "switching-3-packet-1",
-    "t.zgf46iunwd2": "switching-4-packet-2",
+    "t.4kqqq5o6f2l7": "encoding-1-medium-and-signal",
+    "t.6dt8xndqwygo": "encoding-2-wire",
+    "t.jizdtxr6nyez": "encoding-3-clock",
+    "t.56i9sllnc4h6": "encoding-4-bandwidth",
+    "t.mhkywljx3d6h": "switching-1-switch",
+    "t.gk9fpjqcb7ps": "switching-2-circuit",
+    "t.jlk9kvxe4u6m": "switching-3-message",
+    "t.zgf46iunwd2": "switching-4-packet",
     "t.za6a0huic8kb": "ip-1-internet",
     "t.reu5povslldx": "ip-2-address",
     "t.trjq3w5eho7w": "routing-1-table",
-    "t.tgca6vu2wksm": "routing-2-static",
-    "t.18ikjxcjf30w": "routing-3-dynamic"
+    "t.tgca6vu2wksm": "routing-2-static"
   }
 }
