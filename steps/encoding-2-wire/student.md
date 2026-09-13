@@ -12,7 +12,7 @@
 
 با استفاده از مینی‌گیم زیر، میتونین ولتاژ روی سیم رو تغییر بدین. حداکثر ولتاژ روی سیم ۵ ولت و حداقل اون صفر ولته
 
-<iframe class="mini-game" src="../../games/voltage-wire/index.html" title="مینی‌گیم ولتاژ سیم" loading="lazy" allowfullscreen></iframe>
+<iframe class="mini-game" src="../../games/voltage-wire/voltage/index.html" title="مینی‌گیم ولتاژ سیم" loading="lazy" allowfullscreen></iframe>
 
 پس از بررسی مینی‌گیم، به پرسش‌های زیر پاسخ دهید:
 
