@@ -391,11 +391,9 @@
 
         #mountains {
             position: absolute;
-            left: 50%;
-            top: 35%;
             transform: translate(-50%, -50%);
-            width: clamp(70px, 13vw, 140px);
-            height: clamp(34px, 5.5vw, 58px);
+            width: clamp(80px, 10vw, 140px);
+            height: clamp(37px, 4.6vw, 65px);
             pointer-events: none;
             z-index: 4;
             display: flex;
@@ -405,14 +403,15 @@
         #mountains svg {
             width: 100%;
             height: 100%;
-            filter: drop-shadow(0 2px 3px rgba(44, 35, 24, 0.25));
+            filter: drop-shadow(0 3px 5px rgba(44, 35, 24, 0.35));
         }
 
         .edge {
             fill: none;
             stroke: var(--soft-ink);
-            stroke-width: clamp(1.5px, 0.35vw, 2.2px);
+            stroke-width: clamp(1.8px, 0.4vw, 2.6px);
             stroke-linecap: round;
+            opacity: 0.75;
             transition: stroke 0.3s, stroke-width 0.3s, opacity 0.18s, stroke-dasharray 0.18s;
         }
         .edge.occupied {
@@ -490,8 +489,8 @@
         }
 
         .node.terminal {
-            width: clamp(78px, 12vw, 100px);
-            height: clamp(74px, 11.5vw, 94px);
+            width: clamp(62px, 9vw, 82px);
+            height: clamp(58px, 8.5vw, 78px);
             background: none;
             box-shadow: none;
             padding: 0;
@@ -578,10 +577,10 @@
         }
 
         .node.switch {
-            width: clamp(66px, 10vw, 86px);
-            height: clamp(66px, 10vw, 86px);
+            width: clamp(52px, 7.5vw, 70px);
+            height: clamp(52px, 7.5vw, 70px);
             background: var(--tint-turquoise);
-            border: 4px double var(--ink);
+            border: 3px double var(--ink);
             border-radius: 50%;
             color: var(--ink);
             overflow: visible;
@@ -717,16 +716,37 @@
         </defs>
     </svg>
     <div id="mountains" aria-hidden="true">
-        <svg viewBox="0 0 120 50" preserveAspectRatio="xMidYMid meet">
-            <polygon points="8,50 32,14 56,50" fill="#8B7355"/>
-            <polygon points="30,50 56,8 82,50" fill="#8B7355"/>
-            <polygon points="58,50 82,12 106,50" fill="#8B7355"/>
-            <polygon points="0,50 20,26 40,50" fill="#5D5040"/>
-            <polygon points="36,50 62,20 88,50" fill="#5D5040"/>
-            <polygon points="82,50 102,28 120,50" fill="#5D5040"/>
-            <polygon points="17,29 20,26 23,29" fill="#F4F1EA"/>
-            <polygon points="59,23 62,20 65,23" fill="#F4F1EA"/>
-            <polygon points="99,31 102,28 105,31" fill="#F4F1EA"/>
+        <svg viewBox="0 0 160 74" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <linearGradient id="mtn-back-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#B5A388"/>
+                    <stop offset="1" stop-color="#7A6852"/>
+                </linearGradient>
+                <linearGradient id="mtn-front-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#8E7757"/>
+                    <stop offset="1" stop-color="#4C3E2A"/>
+                </linearGradient>
+            </defs>
+            <!-- Back range (atmospheric, hazy) -->
+            <polygon points="0,74 22,38 48,74" fill="url(#mtn-back-grad)" opacity="0.55"/>
+            <polygon points="36,74 64,24 94,74" fill="url(#mtn-back-grad)" opacity="0.55"/>
+            <polygon points="82,74 110,30 140,74" fill="url(#mtn-back-grad)" opacity="0.55"/>
+            <polygon points="128,74 150,42 160,74" fill="url(#mtn-back-grad)" opacity="0.55"/>
+            <!-- Front range (sharp, defined peaks) -->
+            <polygon points="4,74 42,16 80,74" fill="url(#mtn-front-grad)"/>
+            <polygon points="62,74 102,8 140,74" fill="url(#mtn-front-grad)"/>
+            <!-- Sunlit right facets for depth -->
+            <polygon points="42,16 60,50 80,74" fill="#AF9268" opacity="0.85"/>
+            <polygon points="102,8 124,46 140,74" fill="#AF9268" opacity="0.85"/>
+            <!-- Snow caps (angular with subtle shadow) -->
+            <path d="M 37,22 L 42,16 L 48,24 L 44,30 L 39,28 Z" fill="#FCFAF4"/>
+            <path d="M 97,14 L 102,8 L 109,17 L 105,24 L 99,22 Z" fill="#FCFAF4"/>
+            <!-- Snow shadow on the sunlit side -->
+            <path d="M 42,16 L 48,24 L 44,30 Z" fill="#D8D4CA" opacity="0.7"/>
+            <path d="M 102,8 L 109,17 L 105,24 Z" fill="#D8D4CA" opacity="0.7"/>
+            <!-- Snow melt streaks running down -->
+            <path d="M 39,28 L 36,38 M 44,30 L 48,42 M 99,22 L 94,34 M 105,24 L 109,38"
+                  stroke="#FCFAF4" stroke-width="0.7" opacity="0.55" fill="none" stroke-linecap="round"/>
         </svg>
     </div>
     <div id="nodes-container"></div>

@@ -2,38 +2,65 @@ import '@fontsource-variable/vazirmatn';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-const Senders = [
-    { id: 'UT1', type: 'terminal', x: 15, y: 25, label: '1' },
-    { id: 'UT2', type: 'terminal', x: 15, y: 50, label: '2' },
-    { id: 'UT3', type: 'terminal', x: 15, y: 75, label: '3' },
+// Two groups of PCs at the top (pc1-pc2 on Sw1, pc3-pc4 on Sw2) with mountains
+// blocking the direct Sw1-Sw2 hop. Sw3 sits at the bottom as the hub, serving
+// pc5-pc6 and forwarding all cross-group traffic between Sw1 and Sw2.
+// Positions are in normalized coords (rx, ry ∈ [-1, 1]) transformed to pixels
+// at layout time so the diagram stays proportional in any viewport.
+const Terminals = [
+    { id: 'UT1', type: 'terminal', rx: -0.88, ry: -0.85, label: '1' },
+    { id: 'UT2', type: 'terminal', rx: -0.55, ry: -0.85, label: '2' },
+    { id: 'UT3', type: 'terminal', rx:  0.55, ry: -0.85, label: '3' },
+    { id: 'UT4', type: 'terminal', rx:  0.88, ry: -0.85, label: '4' },
+    { id: 'UT5', type: 'terminal', rx: -0.28, ry:  0.90, label: '5' },
+    { id: 'UT6', type: 'terminal', rx:  0.28, ry:  0.90, label: '6' },
 ];
 const Switches = [
-    { id: 'SwA', type: 'switch', x: 38, y: 35, label: 'A' },
-    { id: 'SwB', type: 'switch', x: 38, y: 65, label: 'B' },
-    { id: 'SwC', type: 'switch', x: 62, y: 35, label: 'C' },
-    { id: 'SwD', type: 'switch', x: 62, y: 65, label: 'D' },
-];
-const Receivers = [
-    { id: 'UT4', type: 'terminal', x: 85, y: 25, label: '4' },
-    { id: 'UT5', type: 'terminal', x: 85, y: 50, label: '5' },
-    { id: 'UT6', type: 'terminal', x: 85, y: 75, label: '6' },
+    { id: 'Sw1', type: 'switch', rx: -0.72, ry: -0.20, label: '1' },
+    { id: 'Sw2', type: 'switch', rx:  0.72, ry: -0.20, label: '2' },
+    { id: 'Sw3', type: 'switch', rx:  0,    ry:  0.40, label: '3' },
 ];
 
-const AllNodes = [...Senders, ...Switches, ...Receivers];
+const AllNodes = [...Terminals, ...Switches];
 
+// Mountains block a would-be direct Sw1-Sw2 link, so all cross-group traffic
+// (pc1/2 ↔ pc3/4) has to funnel through Sw3.
 const Connections = [
-    ['UT1', 'SwA'], ['UT2', 'SwA'], ['UT2', 'SwB'], ['UT3', 'SwB'],
-    ['SwA', 'SwD'], ['SwB', 'SwC'], ['SwB', 'SwD'],
-    ['SwC', 'UT4'], ['SwC', 'UT5'], ['SwD', 'UT5'], ['SwD', 'UT6'],
+    ['UT1', 'Sw1'], ['UT2', 'Sw1'],
+    ['UT3', 'Sw2'], ['UT4', 'Sw2'],
+    ['UT5', 'Sw3'], ['UT6', 'Sw3'],
+    ['Sw1', 'Sw3'], ['Sw2', 'Sw3'],
 ];
 
-// Destinations reachable from each sender given the topology.
-// UT1 loses UT4 because SwA-SwC is broken by the mountains.
-const REACHABLE = {
-    'UT1': ['UT5', 'UT6'],
-    'UT2': ['UT4', 'UT5', 'UT6'],
-    'UT3': ['UT4', 'UT5', 'UT6'],
-};
+function computeNodePositions() {
+    const container = document.getElementById('game-container');
+    const w = container.offsetWidth || window.innerWidth;
+    const h = container.offsetHeight || window.innerHeight;
+    const topPad = 110;
+    const bottomPad = 130;
+    const sidePad = 30;
+    const availW = w - 2 * sidePad;
+    const availH = h - topPad - bottomPad;
+    const cx = w / 2;
+    const cy = topPad + availH / 2;
+    // Preserve aspect: scale a 900×500 design canvas to fit the available area.
+    const designW = 900, designH = 500;
+    const scale = Math.min(availW / designW, availH / designH, 1.3);
+    const halfW = designW / 2 * scale;
+    const halfH = designH / 2 * scale;
+    AllNodes.forEach(n => {
+        n.px = cx + n.rx * halfW;
+        n.py = cy + n.ry * halfH;
+    });
+    const sw1 = AllNodes.find(x => x.id === 'Sw1');
+    const sw2 = AllNodes.find(x => x.id === 'Sw2');
+    const mountains = document.getElementById('mountains');
+    if (mountains && sw1 && sw2) {
+        mountains.style.left = `${(sw1.px + sw2.px) / 2}px`;
+        mountains.style.top = `${(sw1.py + sw2.py) / 2}px`;
+    }
+}
+
 const SCENARIO_DEADLINE_MS = 40000;
 
 function shuffle(arr) {
@@ -45,20 +72,21 @@ function shuffle(arr) {
     return a;
 }
 
-// 5-request queue: 2 from UT1 and 2 from UT3 (each pair guaranteed to chain
-// on its source-to-switch edge) plus 1 flexible UT2 request. Destinations
-// and order are randomized while the chain-forced-failure property holds.
+// 5 requests with 5 distinct senders (of the 6 terminals) and random destinations.
+// Congestion emerges from shared ring links — no source is forced to fire twice.
 function buildScenario() {
-    const ut1Dests = shuffle(REACHABLE['UT1']).slice(0, 2);
-    const ut3Dests = shuffle(REACHABLE['UT3']).slice(0, 2);
-    const ut2Dest = REACHABLE['UT2'][Math.floor(Math.random() * REACHABLE['UT2'].length)];
-    const items = [
-        { s: 'UT1', r: ut1Dests[0], volBits: 32, totalPackets: 4 },
-        { s: 'UT1', r: ut1Dests[1], volBits: 32, totalPackets: 4 },
-        { s: 'UT3', r: ut3Dests[0], volBits: 32, totalPackets: 4 },
-        { s: 'UT3', r: ut3Dests[1], volBits: 32, totalPackets: 4 },
-        { s: 'UT2', r: ut2Dest, volBits: 24, totalPackets: 3 },
-    ];
+    const allIds = Terminals.map(t => t.id);
+    const sources = shuffle(allIds).slice(0, 5);
+    const items = sources.map((s, i) => {
+        const opts = allIds.filter(x => x !== s);
+        const r = opts[Math.floor(Math.random() * opts.length)];
+        const isSmall = i === 0;
+        return {
+            s, r,
+            volBits: isSmall ? 24 : 32,
+            totalPackets: isSmall ? 3 : 4,
+        };
+    });
     return shuffle(items);
 }
 
@@ -119,6 +147,7 @@ function initGraph() {
     DOM.nodes.innerHTML = '';
     DOM.links.innerHTML = '';
     edges = [];
+    computeNodePositions();
 
     Connections.forEach(pair => {
         const u = AllNodes.find(n => n.id === pair[0]);
@@ -138,8 +167,8 @@ function initGraph() {
         const el = document.createElement('div');
         el.className = `node ${n.type}`;
         el.id = n.id;
-        el.style.left = `${n.x}%`;
-        el.style.top = `${n.y}%`;
+        el.style.left = `${n.px}px`;
+        el.style.top = `${n.py}px`;
 
         if (n.type === 'switch') {
             const innerSvg = document.createElementNS(SVG_NS, 'svg');
@@ -158,7 +187,7 @@ function initGraph() {
             n.ports = {};
             neighborsOf(n.id).forEach(neighborId => {
                 const neighbor = AllNodes.find(x => x.id === neighborId);
-                const angle = Math.atan2(neighbor.y - n.y, neighbor.x - n.x);
+                const angle = Math.atan2(neighbor.py - n.py, neighbor.px - n.px);
                 const px = Math.cos(angle) * 36;
                 const py = Math.sin(angle) * 36;
                 const deg = angle * 180 / Math.PI;
@@ -217,7 +246,17 @@ function initGraph() {
     });
 
     setTimeout(updateLines, 50);
-    window.addEventListener('resize', updateLines);
+    window.addEventListener('resize', () => {
+        computeNodePositions();
+        AllNodes.forEach(n => {
+            const el = document.getElementById(n.id);
+            if (el) {
+                el.style.left = `${n.px}px`;
+                el.style.top = `${n.py}px`;
+            }
+        });
+        updateLines();
+    });
 }
 
 function updateLines() {
@@ -282,7 +321,8 @@ function spawnNextRequest() {
 function showModal(req) {
     DOM.modalText.innerHTML =
         `<strong>${labelOf(req.s)} ← ${labelOf(req.r)}</strong>` +
-        `<br>حجم دیتا: ${req.volBits} بیت`;
+        `<br>حجم دیتا: ${req.volBits} بیت` +
+        `<br>تعداد بسته‌ها: ${toPersianDigits(req.totalPackets)}`;
     DOM.modal.classList.add('show');
     setTimeout(() => {
         DOM.modal.classList.remove('show');
@@ -302,7 +342,7 @@ function activateRequest(req) {
     card.id = `req-${req.id}`;
     card.innerHTML =
         `درخواست فعلی: <strong>${labelOf(req.s)} ← ${labelOf(req.r)}</strong>` +
-        ` — ${req.volBits} بیت`;
+        ` — ${req.volBits} بیت (${toPersianDigits(req.totalPackets)} بسته)`;
     DOM.topCenter.innerHTML = '';
     DOM.topCenter.appendChild(card);
     renderGraphState();
