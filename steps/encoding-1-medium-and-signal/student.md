@@ -1,6 +1,6 @@
 یه داستان کوتاه…
 
-![A minimal, clean, abstract vector illustration of two figures: one person on the left sending binary numbers (0s and 1s) across to a person on the right receiving them. No text, simple line style, isolated on a white background.](assets/inline-kix-s9e5nt215bj8.jpg)
+![A minimal, clean, abstract vector illustration of two figures: one person on the left sending binary numbers (0s and 1s) across to a person on the right receiving them. No text, simple line style, isolated on a white background.](assets/inline-kix-c8ss43dkny9e.jpg)
 
 فرض کنین قراره برای دوستتون بیت‌های **Y = 01011001** یا **N = 01001110** رو بفرستین، اما نمیتونین از روش‌های بدیهی مثل صحبت کردن یا نوشتن استفاده کنین. &#x20;
 
