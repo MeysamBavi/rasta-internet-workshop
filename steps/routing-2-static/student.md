@@ -1,4 +1,4 @@
-![](assets/inline-kix-lga3fy57gw8g.png)
+![](assets/inline-kix-txmdnt2mnkd1.png)
 
 راهنمای روتر A آماده شده؛ اما شبکه فقط یه روتر نداره.
 
