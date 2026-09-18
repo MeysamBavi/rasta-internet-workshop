@@ -1,11 +1,13 @@
 import '@fontsource-variable/vazirmatn'
+import '../src/styles.css'
 import './styles.css'
-import {NETWORK_COLORS, TOPOLOGY} from './topology.js'
-import {allRouteTests, createTopologyIndex, RouteOutcome, simulateRoute} from './routing.js'
+import {NETWORK_COLORS} from '../src/topology.js'
+import {allRouteTests, createTopologyIndex, RouteOutcome, simulateRoute} from '../src/routing.js'
+import {AGGREGATE_TOPOLOGY} from './topology.js'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
-const topologyIndex = createTopologyIndex(TOPOLOGY)
-const tests = allRouteTests(TOPOLOGY)
+const topologyIndex = createTopologyIndex(AGGREGATE_TOPOLOGY)
+const tests = allRouteTests(AGGREGATE_TOPOLOGY)
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const tablesEl = document.querySelector('#tables')
@@ -18,92 +20,120 @@ const linksLayer = document.querySelector('#network-links')
 const nodesLayer = document.querySelector('#network-nodes')
 const packetLayer = document.querySelector('#packet-layer')
 const overviewEl = document.querySelector('.overview-layout')
-const mapScrollEl = document.querySelector('.map-scroll')
-
-const diagram = renderTopology()
-renderTables()
+const mapScrollEl = document.querySelector('.aggregate-map-scroll')
 
 let running = false
 let latestResults = new Map()
+
+const diagram = renderTopology()
+renderTables()
 
 runAllButton.addEventListener('click', () => runAllTests())
 
 function renderTables() {
   const fragment = document.createDocumentFragment()
-  for (const router of TOPOLOGY.routers) {
-    const directNetwork = TOPOLOGY.networks.find((network) => network.router === router.id)
+  for (const router of AGGREGATE_TOPOLOGY.routers) {
+    const directNetworks = AGGREGATE_TOPOLOGY.networks.filter((network) => network.router === router.id)
     const card = document.createElement('article')
-    card.className = 'table-card'
-    setAddressColor(card, directNetwork)
-    card.style.setProperty('--table-x', `${router.table.x / 12}%`)
-    card.style.setProperty('--table-y', `${router.table.y / 7.2}%`)
-    card.style.setProperty('--table-w', `${router.table.width / 12}%`)
-    card.style.setProperty('--table-h', `${router.table.height / 7.2}%`)
+    card.className = 'table-card aggregate-table-card'
+    card.dataset.router = router.id
+    setFunctionalColor(card, router.color)
     card.innerHTML = `
-      <span class="router-badge badge-${router.table.badgeSide}" role="img" aria-label="مسیریاب ${router.id}">
-        <svg viewBox="0 0 72 62" aria-hidden="true">
-          <path class="router-body" d="M7 20v24c0 8 13 14 29 14s29-6 29-14V20Z"></path>
-          <path class="router-bottom" d="M7 43c0 8 13 14 29 14s29-6 29-14"></path>
-          <ellipse class="router-top" cx="36" cy="20" rx="29" ry="14"></ellipse>
-          <path class="router-arrows" d="M36 8v9m-4-4 4 4 4-4M36 32v-8m-4 4 4-4 4 4M21 20h9m-4-4 4 4-4 4M51 20h-9m4-4-4 4 4 4"></path>
-          <text class="router-letter" x="36" y="48" text-anchor="middle">${router.id}</text>
-        </svg>
-      </span>
-      <h2>جدول مسیریاب <bdi dir="ltr">${router.id}</bdi></h2>
+      <h2>
+        <span class="router-symbol" aria-hidden="true">⇄</span>
+        جدول مسیریاب <bdi dir="ltr">${router.id}</bdi>
+      </h2>
       <table>
-        <thead><tr><th>شبکهٔ مقصد</th><th>گام بعد</th></tr></thead>
-        <tbody></tbody>
+        <thead><tr><th>پیشوند مقصد</th><th>گام بعد</th><th><span class="sr-only">حذف</span></th></tr></thead>
+        <tbody class="route-rows"></tbody>
       </table>
+      <footer class="table-actions">
+        <span class="row-count" aria-live="polite"></span>
+        <button class="add-row" type="button"><span aria-hidden="true">＋</span> افزودن ردیف</button>
+      </footer>
     `
-    const body = card.querySelector('tbody')
-    for (const network of TOPOLOGY.networks) {
-      const row = document.createElement('tr')
-      row.className = 'network-row'
-      const destinationCell = document.createElement('td')
-      destinationCell.className = 'network-destination'
-      const address = document.createElement('bdi')
-      address.className = 'network-address'
-      address.dir = 'ltr'
-      address.textContent = network.label
-      setAddressColor(address, network)
-      destinationCell.append(address)
 
-      const nextHopCell = document.createElement('td')
-      if (network.router === router.id) {
-        row.classList.add('direct-row')
-        const direct = document.createElement('span')
-        direct.className = 'direct-label'
-        direct.textContent = 'مستقیم'
-        setAddressColor(direct, network)
-        nextHopCell.append(direct)
-      } else {
-        const select = document.createElement('select')
-        select.dataset.router = router.id
-        select.dataset.destination = network.id
-        select.setAttribute('aria-label', `گام بعد از مسیریاب ${router.id} به شبکهٔ ${network.label}`)
-        select.innerHTML = '<option value="">—</option>'
-        for (const neighbor of topologyIndex.neighbors.get(router.id)) {
-          const option = document.createElement('option')
-          option.value = neighbor
-          option.textContent = neighbor
-          select.append(option)
-        }
-        nextHopCell.append(select)
-      }
-
-      row.append(destinationCell, nextHopCell)
-      body.append(row)
-    }
+    const body = card.querySelector('.route-rows')
+    for (const network of directNetworks) body.append(createDirectRow(network))
+    card.querySelector('.add-row').addEventListener('click', () => addRouteRow(card, router))
     fragment.append(card)
+    updateRowControls(card, router)
   }
   tablesEl.append(fragment)
+}
+
+function createDirectRow(network) {
+  const row = document.createElement('tr')
+  row.className = 'direct-row'
+  row.innerHTML = `
+    <td><bdi class="network-address" dir="ltr">${network.label}</bdi></td>
+    <td><span class="direct-label">مستقیم</span></td>
+    <td aria-hidden="true">—</td>
+  `
+  setFunctionalColor(row.querySelector('.network-address'), network.color)
+  setFunctionalColor(row.querySelector('.direct-label'), network.color)
+  return row
+}
+
+function addRouteRow(card, router) {
+  const body = card.querySelector('.route-rows')
+  if (body.querySelectorAll('.editable-row').length >= router.rowLimit) return
+
+  const row = document.createElement('tr')
+  row.className = 'editable-row'
+  row.innerHTML = `
+    <td>
+      <label class="prefix-field">
+        <span class="prefix-swatch" aria-hidden="true"></span>
+        <span class="sr-only">پیشوند مقصد در مسیریاب ${router.id}</span>
+        <select class="destination-select" aria-label="پیشوند مقصد در مسیریاب ${router.id}">
+          <option value="">انتخاب مقصد</option>
+          ${AGGREGATE_TOPOLOGY.prefixes.map((prefix) => `<option value="${prefix.value}">${prefix.value}</option>`).join('')}
+        </select>
+      </label>
+    </td>
+    <td>
+      <select class="next-hop-select" aria-label="گام بعد از مسیریاب ${router.id}">
+        <option value="">—</option>
+        ${topologyIndex.neighbors.get(router.id).map((neighbor) => `<option value="${neighbor}">${neighbor}</option>`).join('')}
+      </select>
+    </td>
+    <td><button class="remove-row" type="button" aria-label="حذف این ردیف">×</button></td>
+  `
+  row.querySelector('.destination-select').addEventListener('change', (event) => updatePrefixSwatch(row, event.target.value))
+  row.querySelector('.remove-row').addEventListener('click', () => {
+    row.remove()
+    updateRowControls(card, router)
+    card.querySelector('.add-row').focus()
+  })
+  body.append(row)
+  updatePrefixSwatch(row, '')
+  updateRowControls(card, router)
+  row.querySelector('.destination-select').focus()
+}
+
+function updatePrefixSwatch(row, prefixValue) {
+  const prefix = AGGREGATE_TOPOLOGY.prefixes.find((candidate) => candidate.value === prefixValue)
+  const network = prefix?.networkId ? topologyIndex.networks.get(prefix.networkId) : null
+  const colorName = network?.color ?? prefix?.color ?? null
+  const swatch = row.querySelector('.prefix-swatch')
+  swatch.style.setProperty('--prefix-color', colorName ? NETWORK_COLORS[colorName].base : '#6B5D4A')
+  swatch.classList.toggle('is-empty', !prefixValue)
+}
+
+function updateRowControls(card, router) {
+  const count = card.querySelectorAll('.editable-row').length
+  const addButton = card.querySelector('.add-row')
+  addButton.disabled = running || count >= router.rowLimit
+  addButton.title = count >= router.rowLimit ? 'همهٔ جای جدول استفاده شده است' : ''
+  card.querySelector('.row-count').textContent = `${faNumber(count)} از ${faNumber(router.rowLimit)} ردیف`
 }
 
 function renderTopology() {
   const points = new Map()
   const lineByKey = new Map()
 
-  for (const [leftId, rightId] of TOPOLOGY.links) {
+  for (const [leftId, rightId] of AGGREGATE_TOPOLOGY.links) {
     const left = topologyIndex.routers.get(leftId)
     const right = topologyIndex.routers.get(rightId)
     const line = svg('line', {x1: left.x, y1: left.y, x2: right.x, y2: right.y, class: 'router-link'})
@@ -111,20 +141,29 @@ function renderTopology() {
     lineByKey.set(edgeKey(leftId, rightId), line)
   }
 
-  for (const network of TOPOLOGY.networks) {
+  for (const network of AGGREGATE_TOPOLOGY.networks) {
     const router = topologyIndex.routers.get(network.router)
-    const path = [network, ...(network.via ?? []), router]
-    const link = svg('path', {d: svgPath(path), class: 'network-link'})
+    const link = svg('line', {x1: network.x, y1: network.y, x2: router.x, y2: router.y, class: 'network-link'})
     linksLayer.append(link)
     lineByKey.set(edgeKey(network.id, router.id), link)
   }
 
-  for (const router of TOPOLOGY.routers) points.set(router.id, router)
+  for (const router of AGGREGATE_TOPOLOGY.routers) {
+    points.set(router.id, router)
+    const group = svg('g', {class: 'diagram-router', transform: `translate(${router.x} ${router.y})`})
+    setFunctionalColor(group, router.color)
+    group.append(
+      svg('path', {d: 'M-38 -16v32c0 11 17 19 38 19s38-8 38-19v-32Z', class: 'diagram-router-body'}),
+      svg('ellipse', {cx: 0, cy: -16, rx: 38, ry: 18, class: 'diagram-router-top'}),
+      svgText(0, 10, router.id, 'diagram-router-label'),
+    )
+    nodesLayer.append(group)
+  }
 
-  for (const network of TOPOLOGY.networks) {
+  for (const network of AGGREGATE_TOPOLOGY.networks) {
     points.set(network.id, network)
     const group = svg('g', {class: 'network-node'})
-    setAddressColor(group, network)
+    setFunctionalColor(group, network.color)
     group.append(
       svg('path', {
         d: 'M-62 16H53C66 16 73 6 68-5C64-14 54-17 44-13C37-31 19-39 1-35C-15-31-25-21-27-8C-43-16-61-6-62 10Z',
@@ -139,7 +178,6 @@ function renderTopology() {
   const packet = svg('g', {class: 'packet', hidden: 'true'})
   packet.append(svg('rect', {x: -9, y: -7, width: 18, height: 14, rx: 3}), svg('path', {d: 'M-6 -3 L0 1 L6 -3'}))
   packetLayer.append(packet)
-
   return {points, lineByKey, packet}
 }
 
@@ -175,11 +213,9 @@ async function runAllTests() {
   setRunning(true)
   const tables = readTables()
 
-  for (const test of tests) {
-    await runTest(test, tables)
-  }
+  for (const test of tests) await runTest(test, tables)
 
-  statusEl.textContent = 'اجرای همهٔ مسیرها تمام شد؛ جدول‌ها را تغییر دهید یا یک مسیر را دوباره اجرا کنید.'
+  statusEl.textContent = 'اجرای همهٔ مسیرها تمام شد؛ ردیف‌ها را تغییر دهید یا یک مسیر را دوباره اجرا کنید.'
   setRunning(false)
 }
 
@@ -211,7 +247,7 @@ async function runTest(test, tables) {
   card.querySelector('.test-outcome').textContent = 'در حال اجرا'
   statusEl.replaceChildren(document.createTextNode('ارسال بسته از '), addressNode(source), document.createTextNode(' به '), addressNode(destination))
 
-  const result = simulateRoute(TOPOLOGY, tables, test.sourceId, test.destinationId)
+  const result = simulateRoute(AGGREGATE_TOPOLOGY, tables, test.sourceId, test.destinationId)
   await animateResult(result)
   latestResults.set(test.id, result)
   showResult(card, result)
@@ -220,11 +256,14 @@ async function runTest(test, tables) {
 }
 
 function readTables() {
-  const tables = Object.fromEntries(TOPOLOGY.routers.map((router) => [router.id, {}]))
-  for (const select of tablesEl.querySelectorAll('select')) {
-    tables[select.dataset.router][select.dataset.destination] = select.value || null
-  }
-  return tables
+  return Object.fromEntries(AGGREGATE_TOPOLOGY.routers.map((router) => {
+    const card = tablesEl.querySelector(`[data-router="${router.id}"]`)
+    const entries = [...card.querySelectorAll('.editable-row')].map((row) => ({
+      prefix: row.querySelector('.destination-select').value,
+      nextHop: row.querySelector('.next-hop-select').value || null,
+    }))
+    return [router.id, entries]
+  }))
 }
 
 function showResult(card, result) {
@@ -236,15 +275,9 @@ function showResult(card, result) {
 }
 
 function resultCopy(result) {
-  if (result.outcome === RouteOutcome.OPTIMAL) {
-    return {icon: '✓', label: 'بهینه', detail: `بهینه رسید؛ ${faNumber(result.hopCount)} گام`}
-  }
-  if (result.outcome === RouteOutcome.SUBOPTIMAL) {
-    return {icon: '↗', label: 'نابهینه', detail: `نابهینه رسید؛ ${faNumber(result.hopCount)} به‌جای ${faNumber(result.optimalHopCount)} گام`}
-  }
-  if (result.outcome === RouteOutcome.LOOP) {
-    return {icon: '↻', label: 'حلقه', detail: `در حلقه افتاد؛ ${result.routerPath.join(' ← ')}`}
-  }
+  if (result.outcome === RouteOutcome.OPTIMAL) return {icon: '✓', label: 'بهینه', detail: `بهینه رسید؛ ${faNumber(result.hopCount)} گام`}
+  if (result.outcome === RouteOutcome.SUBOPTIMAL) return {icon: '↗', label: 'نابهینه', detail: `نابهینه رسید؛ ${faNumber(result.hopCount)} به‌جای ${faNumber(result.optimalHopCount)} گام`}
+  if (result.outcome === RouteOutcome.LOOP) return {icon: '↻', label: 'حلقه', detail: `در حلقه افتاد؛ ${result.routerPath.join(' ← ')}`}
   return {icon: '…', label: 'ناقص', detail: `جدول ناقص است؛ توقف در ${result.stoppedAt}`}
 }
 
@@ -264,37 +297,26 @@ function updateSummary() {
 
 async function animateResult(result) {
   const nodes = [result.sourceId, ...result.routerPath]
-  if (result.outcome === RouteOutcome.OPTIMAL || result.outcome === RouteOutcome.SUBOPTIMAL) {
-    nodes.push(result.destinationId)
-  }
+  if (result.outcome === RouteOutcome.OPTIMAL || result.outcome === RouteOutcome.SUBOPTIMAL) nodes.push(result.destinationId)
 
   clearDiagramState()
   diagram.packet.removeAttribute('hidden')
   const start = diagram.points.get(nodes[0])
   diagram.packet.setAttribute('transform', `translate(${start.x} ${start.y})`)
 
-  for (let i = 0; i < nodes.length - 1; i += 1) {
-    const fromId = nodes[i]
-    const toId = nodes[i + 1]
+  for (let index = 0; index < nodes.length - 1; index += 1) {
+    const fromId = nodes[index]
+    const toId = nodes[index + 1]
     const from = diagram.points.get(fromId)
     const to = diagram.points.get(toId)
-    const line = diagram.lineByKey.get(edgeKey(fromId, toId))
-    line?.classList.add('active-link')
-    const travelPoints = pointsBetween(fromId, toId, from, to)
-    for (let segment = 0; segment < travelPoints.length - 1; segment += 1) {
-      const segmentStart = travelPoints[segment]
-      const segmentEnd = travelPoints[segment + 1]
-      const distance = Math.hypot(segmentEnd.x - segmentStart.x, segmentEnd.y - segmentStart.y)
-      const animation = diagram.packet.animate(
-        [
-          {transform: `translate(${segmentStart.x}px, ${segmentStart.y}px)`},
-          {transform: `translate(${segmentEnd.x}px, ${segmentEnd.y}px)`},
-        ],
-        {duration: reducedMotion ? 1 : Math.max(70, Math.min(220, distance * 0.65)), easing: 'ease-in-out'},
-      )
-      await animation.finished
-      diagram.packet.setAttribute('transform', `translate(${segmentEnd.x} ${segmentEnd.y})`)
-    }
+    diagram.lineByKey.get(edgeKey(fromId, toId))?.classList.add('active-link')
+    const distance = Math.hypot(to.x - from.x, to.y - from.y)
+    const animation = diagram.packet.animate(
+      [{transform: `translate(${from.x}px, ${from.y}px)`}, {transform: `translate(${to.x}px, ${to.y}px)`}],
+      {duration: reducedMotion ? 1 : Math.max(80, Math.min(230, distance * 0.65)), easing: 'ease-in-out'},
+    )
+    await animation.finished
+    diagram.packet.setAttribute('transform', `translate(${to.x} ${to.y})`)
   }
 
   if (!reducedMotion) await wait(80)
@@ -313,7 +335,12 @@ function setRunning(value) {
   for (const control of document.querySelectorAll('button, select')) control.disabled = value
   runAllButton.innerHTML = value
     ? '<span class="spinner" aria-hidden="true"></span> در حال اجرا'
-    : '<span aria-hidden="true">▶</span> اجرا'
+    : '<span aria-hidden="true">▶</span> اجرای گزارش'
+  if (!value) {
+    for (const router of AGGREGATE_TOPOLOGY.routers) {
+      updateRowControls(tablesEl.querySelector(`[data-router="${router.id}"]`), router)
+    }
+  }
 }
 
 function svg(name, attributes = {}) {
@@ -332,34 +359,14 @@ function edgeKey(left, right) {
   return [left, right].sort().join('--')
 }
 
-function pointsBetween(fromId, toId, from, to) {
-  const sourceNetwork = topologyIndex.networks.get(fromId)
-  if (sourceNetwork?.router === toId) {
-    return [sourceNetwork, ...(sourceNetwork.via ?? []), to]
-  }
-  const destinationNetwork = topologyIndex.networks.get(toId)
-  if (destinationNetwork?.router === fromId) {
-    return [from, ...[...(destinationNetwork.via ?? [])].reverse(), destinationNetwork]
-  }
-  return [from, to]
-}
-
-function svgPath(points) {
-  return points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x} ${point.y}`).join(' ')
-}
-
-function colorFor(network) {
-  return NETWORK_COLORS[network.color]
-}
-
-function setAddressColor(element, network) {
-  const color = colorFor(network)
+function setFunctionalColor(element, colorName) {
+  const color = NETWORK_COLORS[colorName]
   element.style.setProperty('--network-color', color.base)
   element.style.setProperty('--network-foreground', color.foreground)
 }
 
 function reportNetwork(network) {
-  const color = colorFor(network)
+  const color = NETWORK_COLORS[network.color]
   return `<bdi class="report-network network-address" dir="ltr" style="--network-color:${color.base};--network-foreground:${color.foreground}">${network.label}</bdi>`
 }
 
@@ -368,7 +375,7 @@ function addressNode(network) {
   node.className = 'network-address status-address'
   node.dir = 'ltr'
   node.textContent = network.label
-  setAddressColor(node, network)
+  setFunctionalColor(node, network.color)
   return node
 }
 

@@ -19,7 +19,7 @@
 3. بهترین مسیر رو انتخاب کنه.
 4. در نهایت به شبکهٔ مقصد برسه.
 
-<iframe class="mini-game" src="../../games/routing/index.html" title="مینی‌گیم پر کردن جداول مسیریابی" loading="lazy" allowfullscreen></iframe>
+<iframe class="mini-game" src="../../games/routing/basic/index.html" title="مینی‌گیم پر کردن جداول مسیریابی" loading="lazy" allowfullscreen></iframe>
 
 ### آماده‌این؟
 
